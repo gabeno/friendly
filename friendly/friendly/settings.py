@@ -85,6 +85,7 @@ DATABASES = {
         "PASSWORD": os.environ.get("SQL_PASSWORD", ""),
         "HOST": os.environ.get("SQL_HOST", "localhost"),
         "PORT": os.environ.get("SQL_PORT", "5432"),
+        'DISABLE_SERVER_SIDE_CURSORS': True,
     }
 }
 
