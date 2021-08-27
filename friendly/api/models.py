@@ -6,20 +6,6 @@ from django.db import models
 from django.utils import timezone
 
 
-class Post(models.Model):
-    content = models.CharField(max_length=300)
-    created_when = models.DateTimeField(default=timezone.now)
-    likes_count = models.IntegerField(default=0)
-    author_id = models.IntegerField(default=99)
-
-    def save(self, *args, **kwargs):
-        super().full_clean()
-        super().save(*args, **kwargs)
-
-    def __str__(self):
-        return f"{self.__class__.__name__}(id={self.id})"
-
-
 class User(models.Model):
     username = models.CharField(max_length=50, unique=True)
     email = models.EmailField(max_length=50, unique=True)
@@ -45,6 +31,22 @@ class User(models.Model):
             unicodedata.normalize("NFKC", raw_password).encode("utf8"),
             bytes(self.password, "utf8"),
         )
+
+    def __str__(self):
+        return f"{self.__class__.__name__}(id={self.id})"
+
+
+class Post(models.Model):
+    content = models.CharField(max_length=300)
+    created_when = models.DateTimeField(default=timezone.now)
+    likes_count = models.IntegerField(default=0)
+    author = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="posts"
+    )
+
+    def save(self, *args, **kwargs):
+        super().full_clean()
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.__class__.__name__}(id={self.id})"

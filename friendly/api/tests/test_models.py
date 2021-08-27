@@ -1,116 +1,84 @@
 import pytest
 from api.models import Post, User
+from api.tests import PostData, UserData
 from django.core.exceptions import ValidationError
 from django.db.utils import IntegrityError
-from django.utils import timezone
-
-NOW = timezone.now()
 
 
 @pytest.mark.django_db
 class TestPostModel(object):
-    def test_post_create_details_ok(self):
-        content = """Once upon a tyne, there lived a great old fellow who had
-an amazing ability to see yonder!
+    def test_post_create_details_ok(self, now, valid_user, post_data, post):
+        assert post.content == post_data.content
+        assert post.created_when == now
+        assert post.likes_count == post_data.likes_count
+        assert post.author == valid_user
 
-He led a simple life back at the village. He was quite a honorable
-person and very respected amongst his peers.
-
-Abrupt end of story 😶 !!"""
-
-        post = Post.objects.create(
-            content=content,
-            created_when=NOW,
-        )
-
-        assert post.content == content
-        assert post.created_when == NOW
-        assert post.likes_count == 0
-        assert post.author_id == 99
-
-    def test_create_one_post_count_ok(self):
+    def test_create_one_post_count_ok(self, post_data):
         before_count = Post.objects.count()
-        Post.objects.create(
-            content="content",
-        )
+        Post.objects.create(**post_data.to_dict())
 
         assert Post.objects.count() == before_count + 1
 
-    def test_post_add_like_increases_count(self):
-        p = Post.objects.create(
-            content="content",
-        )
-        likes_count_before = p.likes_count
-        p.likes_count += 1
-        p.save()
+    def test_post_add_like_increases_count(self, post):
+        likes_count_before = post.likes_count
+        post.likes_count += 1
+        post.save()
 
-        assert p.likes_count == likes_count_before + 1
+        assert post.likes_count == likes_count_before + 1
 
-    def test_create_multiple_posts_count_ok(self):
+    def test_create_multiple_posts_count_ok(self, post_data):
         before_count = Post.objects.count()
-        Post.objects.create(
-            content="content 1",
-        )
-        Post.objects.create(
-            content="content 2",
-        )
+        for _ in range(2):
+            Post.objects.create(**post_data.to_dict())
 
         assert Post.objects.count() == before_count + 2
 
-    def test_delete_post_ok(self):
-        p = Post.objects.create(
-            content="content",
-        )
+    def test_delete_post_ok(self, post):
         before_count = Post.objects.count()
-        p.delete()
+        post.delete()
 
         assert Post.objects.count() == before_count - 1
 
-    def test_create_post_with_empty_string_raises(self):
+    def test_create_post_with_empty_string_raises(self, post_data):
         with pytest.raises(ValidationError) as exec_info:
-            Post.objects.create(content="")
+            post_data.content = ""
+            Post.objects.create(**post_data.to_dict())
 
-        assert "This field cannot be blank" in str(exec_info)
+        assert "content" and "This field cannot be blank" in str(exec_info)
+
+    def test_create_post_without_author_raises(self, post_data):
+        with pytest.raises(ValidationError) as exec_info:
+            post_data.author = None
+            Post.objects.create(**post_data.to_dict())
+
+        assert "author" and "This field cannot be null" in str(exec_info)
 
 
 @pytest.mark.django_db
 class TestUserModel(object):
-    def test_create_user_with_given_details(self):
-        password = "secure不"
-        hashed_password = User.hash_password(password)
-        geo_data = dict(latitude=36.8155, longitude=-1.2841, ip="0.0.0.0")
-        user = User(
-            username="@gm",
-            email="g@m.com",
-            created_when=NOW,
-            geo_data=dict(latitude=36.8155, longitude=-1.2841, ip="0.0.0.0"),
-        )
-        user.password = hashed_password
-        user.save()
+    def test_create_user_with_given_details(self, valid_user, now, user_data):
+        assert valid_user.username == user_data.username
+        assert valid_user.email == user_data.email
+        assert valid_user.created_when == now
+        assert valid_user.check_password(user_data.password) is True
+        assert valid_user.geo_data == user_data.geo_data
 
-        assert user.username == "@gm"
-        assert user.email == "g@m.com"
-        assert user.created_when == NOW
-        assert user.check_password(password) is True
-        assert user.geo_data == geo_data
-
-    def test_create_user_with_unique_username(self):
+    def test_create_user_with_unique_username(self, user_data):
         with pytest.raises(ValidationError) as exec_info:
-            User.objects.create(username="gm", email="g@m.com", password="123")
-            User.objects.create(username="gm", email="m@g.com", password="123")
+            for _ in range(2):
+                User.objects.create(**user_data.to_dict())
         assert "User with this Username already exists" in str(exec_info)
 
-    def test_create_user_with_emoji_username(self):
-        user = User.objects.create(
-            username="😜", email="g@m.com", password="123"
-        )
+    def test_create_user_with_emoji_username(self, user_data):
+        user_data.username = "😜"
+        user = User.objects.create(**user_data.to_dict())
 
         assert user.username == "😜"
 
-    def test_create_user_with_unique_email(self):
+    def test_create_user_with_unique_email(self, user_data):
         with pytest.raises(ValidationError) as exec_info:
-            User.objects.create(username="gm", email="g@m.com", password="123")
-            User.objects.create(username="mg", email="g@m.com", password="123")
+            for _ in range(2):
+                User.objects.create(**user_data.to_dict())
         assert "User with this Email already exists" in str(exec_info)
 
     @pytest.mark.parametrize(
@@ -123,31 +91,24 @@ class TestUserModel(object):
             ("user5", "me@name.c"),
         ],
     )
-    def test_create_user_with_invalid_email(self, invalid_email):
+    def test_create_user_with_invalid_email(self, invalid_email, user_data):
         with pytest.raises(ValidationError) as exec_info:
-            User.objects.create(username="gm", email=invalid_email)
+            user_data.email = invalid_email
+            User.objects.create(**user_data.to_dict())
         assert "Enter a valid email address" in str(exec_info)
 
-    def test_check_wrong_password(self):
-        hashed_password = User.hash_password("yes")
-        user = User(
-            username="@gm",
-            email="g@m.com",
-            created_when=NOW,
-        )
-        user.password = hashed_password
-        user.save()
+    def test_check_wrong_password(self, valid_user):
+        new_password = "random new password"
 
-        assert user.check_password("no") is False
+        assert valid_user.password != User.hash_password(new_password)
+        assert valid_user.check_password(new_password) is False
 
-    def test_create_user_with_default_geo_data(self):
-        hashed_password = User.hash_password("yes")
-        user = User(
-            username="u",
-            email="g@m.com",
-            created_when=NOW,
-        )
-        user.password = hashed_password
-        user.save()
+    def test_create_user_with_default_geo_data(self, user_data):
+        user = User.objects.create(**user_data.to_dict(exclude=["geo_data"]))
 
         assert user.geo_data == {}
+
+    def test_can_get_posts_for_author(self, post, valid_user):
+        posts = list(valid_user.posts.all())
+
+        assert posts[0].author == valid_user
