@@ -3,3 +3,4 @@ djangorestframework==3.12.4
 psycopg2-binary==2.8.5
 pytest-django==4.4.0
 mixer==7.1.2
+bcrypt==3.2.0
