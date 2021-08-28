@@ -26,6 +26,27 @@ class TestPostModel(object):
 
         assert post.likes_count == likes_count_before + 1
 
+    def test_post_like_count_takes_only_positive_numbers(self, post):
+        with pytest.raises(ValidationError) as exec_info:
+            likes_count_before = post.likes_count
+            post.likes_count -= 1
+            post.save()
+
+            assert likes_count_before == 0
+            assert (
+                "likes_count"
+                and "Ensure this value is greater than or equal to 0"
+                in str(exec_info)
+            )
+
+    def test_decrease_likes_count(self, post):
+        likes_count_before = post.likes_count
+        post.likes_count += 1
+        post.save()
+
+        assert likes_count_before == 0
+        assert post.likes_count == likes_count_before + 1
+
     def test_create_multiple_posts_count_ok(self, post_data):
         before_count = Post.objects.count()
         for _ in range(2):

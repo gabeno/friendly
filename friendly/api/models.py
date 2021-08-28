@@ -39,7 +39,7 @@ class User(models.Model):
 class Post(models.Model):
     content = models.CharField(max_length=300)
     created_when = models.DateTimeField(default=timezone.now)
-    likes_count = models.IntegerField(default=0)
+    likes_count = models.PositiveIntegerField(default=0)
     author = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="posts"
     )
