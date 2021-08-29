@@ -47,12 +47,11 @@ class TestPostModel(object):
         assert likes_count_before == 0
         assert post.likes_count == likes_count_before + 1
 
-    def test_create_multiple_posts_count_ok(self, post_data):
+    def test_create_multiple_posts_count_ok(self, post_data, post):
         before_count = Post.objects.count()
-        for _ in range(2):
-            Post.objects.create(**post_data.to_dict())
+        Post.objects.create(**post_data.to_dict())
 
-        assert Post.objects.count() == before_count + 2
+        assert Post.objects.count() == before_count + 1
 
     def test_delete_post_ok(self, post):
         before_count = Post.objects.count()
@@ -84,11 +83,22 @@ class TestUserModel(object):
         assert valid_user.check_password(user_data.password) is True
         assert valid_user.geo_data == user_data.geo_data
 
-    def test_create_user_with_unique_username(self, user_data):
+    def test_create_user_without_email_raises(self, user_data):
         with pytest.raises(ValidationError) as exec_info:
-            for _ in range(2):
-                User.objects.create(**user_data.to_dict())
+            user_data.email = None
+            User.objects.create(**user_data.to_dict())
+        assert "This field cannot be null" in str(exec_info)
+
+    def test_create_user_with_unique_username(self, user_data, valid_user):
+        with pytest.raises(ValidationError) as exec_info:
+            User.objects.create(**user_data.to_dict())
         assert "User with this Username already exists" in str(exec_info)
+
+    def test_create_user_without_username_raises(self, user_data):
+        with pytest.raises(ValidationError) as exec_info:
+            user_data.username = None
+            User.objects.create(**user_data.to_dict())
+        assert "This field cannot be null" in str(exec_info)
 
     def test_create_user_with_emoji_username(self, user_data):
         user_data.username = "😜"
@@ -96,10 +106,9 @@ class TestUserModel(object):
 
         assert user.username == "😜"
 
-    def test_create_user_with_unique_email(self, user_data):
+    def test_create_user_with_unique_email(self, user_data, valid_user):
         with pytest.raises(ValidationError) as exec_info:
-            for _ in range(2):
-                User.objects.create(**user_data.to_dict())
+            User.objects.create(**user_data.to_dict())
         assert "User with this Email already exists" in str(exec_info)
 
     @pytest.mark.parametrize(

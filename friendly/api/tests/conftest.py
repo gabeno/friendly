@@ -2,6 +2,7 @@ import pytest
 from api.models import Post, User
 from api.tests import PostData, UserData
 from django.utils import timezone
+from rest_framework.test import APIClient
 
 
 @pytest.fixture
@@ -52,3 +53,8 @@ def post(post_data, now, valid_user):
         created_when=now,
         author=valid_user,
     )
+
+
+@pytest.fixture
+def api_client():
+    return APIClient()
