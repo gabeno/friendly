@@ -4,17 +4,17 @@ from rest_framework import serializers
 
 class PostSerializer(serializers.ModelSerializer):
     author = serializers.HyperlinkedRelatedField(
-        read_only=True, view_name="user_detail"
+        read_only=True, view_name="user-detail"
     )
 
     class Meta:
         model = Post
-        fields = ["id", "content", "author", "created_when"]
+        fields = ["id", "content", "author", "created_when", "likes_count"]
 
 
 class UserSerializer(serializers.ModelSerializer):
     posts = serializers.HyperlinkedRelatedField(
-        read_only=True, many=True, view_name="post_detail", required=False
+        read_only=True, many=True, view_name="post-detail", required=False
     )
 
     class Meta:

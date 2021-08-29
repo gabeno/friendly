@@ -22,5 +22,7 @@ class PostData(object):
     content: str
     likes_count: int
 
-    def to_dict(self):
+    def to_dict(self, exclude=[]):
+        if len(exclude):
+            return {k: v for k, v in self.__dict__.items() if k not in exclude}
         return asdict(self)
