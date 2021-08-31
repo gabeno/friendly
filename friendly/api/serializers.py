@@ -32,8 +32,6 @@ class UserSerializer(serializers.ModelSerializer):
         ]
         extra_kwargs = {
             "password": {"write_only": True},
-            "geo_data": {"required": False},
-            "created_on_holiday": {"required": False},
         }
 
     def create(self, validated_data):

@@ -18,7 +18,7 @@ class User(AbstractUser):
     REQUIRED_FIELDS = []
 
     def save(self, *args, **kwargs):
-        super().full_clean()
+        super().full_clean(exclude=["geo_data", "created_on_holiday"])
         super().save(*args, **kwargs)
 
     def __str__(self):
