@@ -31,7 +31,7 @@ urlpatterns = [
     path("user/<int:pk>/", UserDetailView.as_view(), name="user-detail"),
     path("post/", PostCreateView.as_view(), name="post-create"),
     path("post/<int:pk>/", PostDetailView.as_view(), name="post-detail"),
-    path("likes/<int:pk>/", LikesView.as_view(), name="likes-detail"),
+    path("likes/<int:pk>/", LikesView.as_view(), name="likes"),
     path("login/", TokenObtainPairView.as_view(), name="login"),
     path("logout/", LogoutView.as_view(), name="logout"),
 ]

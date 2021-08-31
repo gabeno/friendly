@@ -30,7 +30,7 @@ He led a simple life back at the village. He was quite a honorable
 person and very respected amongst his peers.
 
 Abrupt end of story 😶 !!"""
-    return PostData(author=valid_user, content=content, likes_count=0)
+    return PostData(author=valid_user, content=content)
 
 
 @pytest.fixture

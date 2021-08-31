@@ -9,7 +9,8 @@ class PostSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Post
-        fields = ["id", "content", "author", "created_when", "likes_count"]
+        fields = ["id", "content", "author", "created_when", "likes"]
+        extra_kwargs = {"likes": {"required": False}}
 
 
 class UserSerializer(serializers.ModelSerializer):

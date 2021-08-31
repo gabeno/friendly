@@ -28,7 +28,7 @@ class User(AbstractUser):
 class Post(models.Model):
     content = models.CharField(max_length=300)
     created_when = models.DateTimeField(default=timezone.now)
-    likes_count = models.PositiveIntegerField(default=0)
+    likes = models.ManyToManyField(User, related_name="likes")
     author = models.ForeignKey(
         User, on_delete=models.PROTECT, related_name="posts"
     )

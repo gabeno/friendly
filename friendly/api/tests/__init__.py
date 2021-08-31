@@ -20,7 +20,6 @@ class UserData(object):
 class PostData(object):
     author: User
     content: str
-    likes_count: int
 
     def to_dict(self, exclude=[]):
         if len(exclude):

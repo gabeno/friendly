@@ -74,12 +74,13 @@ class LikesView(APIView):
 
     def put(self, request, pk):
         post = self._get_object(pk)
-        data = {"likes_count": int(request.data.get("likes_count")) + 1}
-        serializer = PostSerializer(post, data=data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.validated_data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        user = request.user
+        if post.likes.filter(id=user.id).exists():
+            post.likes.remove(user)
+        else:
+            post.likes.add(user)
+        serializer = PostSerializer(post, context={"request": request})
+        return Response(serializer.data)
 
 
 class LogoutView(APIView):

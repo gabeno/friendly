@@ -212,47 +212,63 @@ class TestPostDetailView(object):
         assert response.status_code == status.HTTP_200_OK
         assert data["content"] == post_data.content
         assert int(data["author"].split("/")[-2]) == valid_user.id
-        assert data["likes_count"] == post_data.likes_count
+        assert len(data["likes"]) == 0
 
 
 @pytest.mark.django_db
 class TestLikesView(object):
     def test_unauthorized_access(self, api_client, valid_user):
-        url = reverse("likes-detail", kwargs={"pk": valid_user.id})
+        url = reverse("likes", kwargs={"pk": valid_user.id})
         response = api_client.put(url)
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_delete_not_allowed(self, api_client_with_token, post):
-        url = reverse("likes-detail", kwargs={"pk": post.id})
+        url = reverse("likes", kwargs={"pk": post.id})
         response = api_client_with_token.delete(url)
 
         assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
 
     def test_post_not_allowed(self, api_client_with_token, post):
-        url = reverse("likes-detail", kwargs={"pk": post.id})
+        url = reverse("likes", kwargs={"pk": post.id})
         response = api_client_with_token.post(url)
 
         assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
 
     def test_get_not_allowed(self, api_client_with_token, post):
-        url = reverse("likes-detail", kwargs={"pk": post.id})
+        url = reverse("likes", kwargs={"pk": post.id})
         response = api_client_with_token.get(url)
 
         assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
 
-    def test_update_post_detail_likes_count(
+    def test_user_likes_a_post_adds_count(
         self, api_client_with_token, post, post_data
     ):
-        likes_count_before = post.likes_count
-        url = reverse("likes-detail", kwargs={"pk": post.id})
+        likes_count_before = post.likes.count()
+        url = reverse("likes", kwargs={"pk": post.id})
         response = api_client_with_token.put(
             url, data=post_data.to_dict(exclude=["author"]), format="json"
         )
 
         data = response.data
 
-        assert data["likes_count"] == likes_count_before + 1
+        assert len(data["likes"]) == likes_count_before + 1
+
+    def test_user_likes_then_unlikes_a_post_resets_count(
+        self, api_client_with_token, post, post_data
+    ):
+        likes_count_before = post.likes.count()
+        url = reverse("likes", kwargs={"pk": post.id})
+        api_client_with_token.put(
+            url, data=post_data.to_dict(exclude=["author"]), format="json"
+        )
+        response = api_client_with_token.put(
+            url, data=post_data.to_dict(exclude=["author"]), format="json"
+        )
+
+        data = response.data
+
+        assert len(data["likes"]) == likes_count_before
 
 
 @pytest.mark.django_db
