@@ -26,8 +26,14 @@ class UserSerializer(serializers.ModelSerializer):
             "created_when",
             "geo_data",
             "posts",
+            "password",
+            "created_on_holiday",
         ]
+        extra_kwargs = {"password": {"write_only": True}}
 
     def create(self, validated_data):
-        user = User.objects.create(**validated_data)
-        return user
+        password = validated_data.pop("password")
+        instance = self.Meta.model(**validated_data)
+        instance.set_password(password)
+        instance.save()
+        return instance

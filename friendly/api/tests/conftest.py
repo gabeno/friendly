@@ -34,14 +34,13 @@ Abrupt end of story 😶 !!"""
 
 @pytest.fixture
 def valid_user(now, user_data):
-    hashed_password = User.hash_password(user_data.password)
     user = User(
         username=user_data.username,
         email=user_data.email,
         created_when=now,
         geo_data=user_data.geo_data,
     )
-    user.password = hashed_password
+    user.set_password(user_data.password)
     user.save()
     return user
 

@@ -80,8 +80,9 @@ class TestUserModel(object):
         assert valid_user.username == user_data.username
         assert valid_user.email == user_data.email
         assert valid_user.created_when == now
-        assert valid_user.check_password(user_data.password) is True
         assert valid_user.geo_data == user_data.geo_data
+        assert valid_user.posts.count() == 0
+        assert valid_user.password != user_data.password
 
     def test_create_user_without_email_raises(self, user_data):
         with pytest.raises(ValidationError) as exec_info:
@@ -112,7 +113,7 @@ class TestUserModel(object):
         assert "User with this Email already exists" in str(exec_info)
 
     @pytest.mark.parametrize(
-        "invalid_email",
+        "username,invalid_email",
         [
             ("user1", "name"),
             ("user2", "na.me"),
@@ -121,24 +122,24 @@ class TestUserModel(object):
             ("user5", "me@name.c"),
         ],
     )
-    def test_create_user_with_invalid_email(self, invalid_email, user_data):
+    def test_create_user_with_invalid_email(
+        self, username, invalid_email, user_data
+    ):
         with pytest.raises(ValidationError) as exec_info:
             user_data.email = invalid_email
+            user_data.username = username
             User.objects.create(**user_data.to_dict())
         assert "Enter a valid email address" in str(exec_info)
-
-    def test_check_wrong_password(self, valid_user):
-        new_password = "random new password"
-
-        assert valid_user.password != User.hash_password(new_password)
-        assert valid_user.check_password(new_password) is False
 
     def test_create_user_with_default_geo_data(self, user_data):
         user = User.objects.create(**user_data.to_dict(exclude=["geo_data"]))
 
         assert user.geo_data == {}
 
-    def test_can_get_posts_for_author(self, post, valid_user):
-        posts = list(valid_user.posts.all())
+    def test_create_user_with_default_holiday_data(self, user_data):
+        user = User.objects.create(**user_data.to_dict())
 
-        assert posts[0].author == valid_user
+        assert user.created_on_holiday == {}
+
+    def test_can_get_posts_for_author(self, post, valid_user):
+        assert valid_user.posts.first().author == valid_user

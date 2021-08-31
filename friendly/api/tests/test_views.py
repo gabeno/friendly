@@ -27,8 +27,15 @@ class TestUserCreateView(object):
             self.endpoint, data=user_data.to_dict(), format="json"
         )
 
+        data = response.data
+
         assert response.status_code == status.HTTP_201_CREATED
-        assert response.data == user_data.to_dict(exclude=["password"])
+        assert data["created_on_holiday"] == {}
+        assert data["email"] == user_data.email
+        assert data["geo_data"] == user_data.geo_data
+        assert data["username"] == user_data.username
+        assert data["posts"] == []
+        assert "password" not in data
 
     def test_create_user_with_missing_email(self, api_client, user_data):
         user_data.email = None
