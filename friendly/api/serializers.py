@@ -30,7 +30,11 @@ class UserSerializer(serializers.ModelSerializer):
             "password",
             "created_on_holiday",
         ]
-        extra_kwargs = {"password": {"write_only": True}}
+        extra_kwargs = {
+            "password": {"write_only": True},
+            "geo_data": {"required": False},
+            "created_on_holiday": {"required": False},
+        }
 
     def create(self, validated_data):
         password = validated_data.pop("password")
