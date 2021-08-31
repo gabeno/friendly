@@ -43,9 +43,7 @@ class PostCreateView(APIView):
             data=request.data, context={"request": request}
         )
         if serializer.is_valid():
-            author = User.objects.get(pk=request.data.get("id"))  # XXX
-            serializer.save(author=author)  # XXX
-            # serializer.save(author=request.user)
+            serializer.save(author=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

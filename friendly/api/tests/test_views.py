@@ -282,7 +282,6 @@ class TestPostCreateView(object):
     def test_create_post_with_valid_data(
         self, api_client_with_token, post_data, valid_user
     ):
-        post_data.id = valid_user.id  # XXX
         response = api_client_with_token.post(
             self.endpoint,
             data=post_data.to_dict(exclude=["author"]),
