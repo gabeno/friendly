@@ -15,6 +15,7 @@ Including another URLconf
 """
 from api.views import (
     LikesView,
+    LogoutView,
     PostCreateView,
     PostDetailView,
     UserCreateView,
@@ -22,6 +23,7 @@ from api.views import (
 )
 from django.contrib import admin
 from django.urls import path
+from rest_framework_simplejwt.views import TokenObtainPairView
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -30,4 +32,6 @@ urlpatterns = [
     path("post/", PostCreateView.as_view(), name="post-create"),
     path("post/<int:pk>/", PostDetailView.as_view(), name="post-detail"),
     path("likes/<int:pk>/", LikesView.as_view(), name="likes-detail"),
+    path("login/", TokenObtainPairView.as_view(), name="login"),
+    path("logout/", LogoutView.as_view(), name="logout"),
 ]

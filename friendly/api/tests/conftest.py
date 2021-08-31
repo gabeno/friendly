@@ -3,6 +3,7 @@ from api.models import Post, User
 from api.tests import PostData, UserData
 from django.utils import timezone
 from rest_framework.test import APIClient
+from rest_framework_simplejwt.tokens import RefreshToken
 
 
 @pytest.fixture
@@ -57,3 +58,11 @@ def post(post_data, now, valid_user):
 @pytest.fixture
 def api_client():
     return APIClient()
+
+
+@pytest.fixture
+def api_client_with_token(valid_user):
+    client = APIClient()
+    refresh = RefreshToken.for_user(valid_user)
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}")
+    return client
