@@ -217,8 +217,8 @@ class TestPostDetailView(object):
 
 @pytest.mark.django_db
 class TestLikesView(object):
-    def test_unauthorized_access(self, api_client, valid_user):
-        url = reverse("likes", kwargs={"pk": valid_user.id})
+    def test_unauthorized_access(self, api_client, post):
+        url = reverse("likes", kwargs={"pk": post.id})
         response = api_client.put(url)
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
