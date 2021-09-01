@@ -95,5 +95,5 @@ class LogoutView(APIView):
             token = RefreshToken(request.data.get("refresh"))
             token.blacklist()
             return Response(status=status.HTTP_200_OK)
-        except:
+        except Exception:
             return Response(status=status.HTTP_400_BAD_REQUEST)
